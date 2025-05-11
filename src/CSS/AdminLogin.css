@@ -1,0 +1,101 @@
+/* src/CSS/AdminLogin.css */
+.admin-login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    padding: 8rem;
+    background-color: #f5f7fa;
+}
+
+.admin-login-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 450px;
+}
+
+.admin-login-title {
+    font-size: 1.8rem;
+    color: #0070c0;
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.admin-login-subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 2rem;
+}
+
+.admin-login-error {
+    background-color: #ffebee;
+    color: #d32f2f;
+    padding: 0.8rem;
+    border-radius: 5px;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.admin-login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-weight: 500;
+}
+
+.form-group input {
+    padding: 0.8rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+    border-color: #0070c0;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 112, 192, 0.1);
+}
+
+.admin-login-button {
+    background-color: #0070c0;
+    color: white;
+    border: none;
+    padding: 0.9rem;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 0.5rem;
+}
+
+.admin-login-button:hover {
+    background-color: #005a9e;
+}
+
+.admin-login-button:disabled {
+    background-color: #b3d4e6;
+    cursor: not-allowed;
+}
+
+@media screen and (max-width: 500px) {
+    .admin-login-card {
+        padding: 1.5rem;
+    }
+}

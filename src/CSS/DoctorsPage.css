@@ -1,0 +1,14 @@
+/* DoctorsPage.css */
+.doctors-page {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    min-height: 80vh; /* Ensures the page has a minimum height */
+}
+
+@media screen and (max-width: 768px) {
+    .doctors-page {
+        padding: 1.5rem 1rem;
+    }
+}

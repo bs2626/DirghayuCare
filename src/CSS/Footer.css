@@ -1,0 +1,179 @@
+/* Footer.css */
+.footer {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+    padding: 4rem 0 0;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 3rem;
+}
+
+.footer-logo-section {
+    flex: 1;
+    min-width: 250px;
+}
+
+.footer-logo {
+    width: 120px;
+    height: auto;
+    margin-bottom: 1rem;
+    border-radius: 10px;
+}
+
+.footer-tagline {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    color: #a0a0a0;
+}
+
+/* Social Media Links */
+.social-media-links {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: #333;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.social-link:hover {
+    transform: translateY(-5px);
+}
+
+.social-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* Facebook specific hover */
+.social-link:nth-child(1):hover {
+    background-color: #1877F2;
+}
+
+/* Instagram specific hover */
+.social-link:nth-child(2):hover {
+    background: linear-gradient(45deg, #405DE6, #5851DB, #833AB4, #C13584, #E1306C, #FD1D1D, #F56040, #F77737, #FCAF45, #FFDC80);
+}
+
+/* TikTok specific hover */
+.social-link:nth-child(3):hover {
+    background: linear-gradient(45deg, #000000, #EE1D52, #69C9D0);
+}
+
+.footer-links {
+    flex: 2;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.footer-column {
+    min-width: 160px;
+}
+
+.footer-heading {
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+    color: #ffffff;
+    position: relative;
+}
+
+.footer-heading::after {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 3px;
+    background-color: #f7941d;
+    margin-top: 0.5rem;
+}
+
+.footer-list {
+    list-style: none;
+}
+
+.footer-link, .footer-contact-item {
+    display: block;
+    padding: 0.5rem 0;
+    font-size: 0.95rem;
+    color: #a0a0a0;
+    transition: all 0.3s ease;
+}
+
+.footer-link:hover {
+    color: #ffffff;
+    transform: translateX(5px);
+}
+
+.footer-contact-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.footer-icon {
+    width: 18px;
+    height: 18px;
+    color: #f7941d;
+}
+
+.copyright {
+    text-align: center;
+    padding: 1.5rem;
+    margin-top: 3rem;
+    border-top: 1px solid #333;
+    color: #777;
+    font-size: 0.9rem;
+}
+
+/* Responsive Styles */
+@media screen and (max-width: 992px) {
+    .footer-container {
+        gap: 2rem;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .footer-container {
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .footer-links {
+        width: 100%;
+    }
+
+    .footer-column {
+        min-width: 140px;
+    }
+
+    .social-media-links {
+        margin-top: 1rem;
+    }
+}
+
+@media screen and (max-width: 576px) {
+    .footer-links {
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .footer-column {
+        width: 100%;
+    }
+}

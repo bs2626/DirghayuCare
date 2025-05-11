@@ -1,0 +1,137 @@
+/* DoctorList.css */
+.doctors-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.doctors-title {
+    font-size: 2.2rem;
+    color: #0070c0;
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.doctors-title::after {
+    content: '';
+    display: block;
+    width: 80px;
+    height: 4px;
+    background-color: #f7941d;
+    margin: 0.8rem auto 0;
+    border-radius: 2px;
+}
+
+/* Filter styles */
+.doctors-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background-color: #f5f7fa;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.filter-item {
+    flex: 1;
+    min-width: 200px;
+}
+
+.filter-item label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.filter-item select {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 0.95rem;
+    color: #333;
+    background-color: white;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 1em;
+}
+
+.filter-item select:focus {
+    outline: none;
+    border-color: #0070c0;
+    box-shadow: 0 0 0 2px rgba(0, 112, 192, 0.2);
+}
+
+.filter-reset {
+    align-self: flex-end;
+    background-color: #f0f0f0;
+    border: none;
+    padding: 0.7rem 1.2rem;
+    border-radius: 5px;
+    font-size: 0.95rem;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-reset:hover {
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+/* Doctors grid */
+.doctors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.doctor-grid-item {
+    height: 100%;
+}
+
+/* Loading and error states */
+.doctors-loading,
+.doctors-empty,
+.doctors-error {
+    text-align: center;
+    padding: 3rem 0;
+    font-size: 1.2rem;
+    color: #666;
+}
+
+.doctors-error {
+    color: #e53935;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    .doctors-container {
+        padding: 1.5rem 1rem;
+    }
+
+    .doctors-title {
+        font-size: 1.8rem;
+    }
+
+    .doctors-filter {
+        flex-direction: column;
+        padding: 1.2rem;
+    }
+
+    .filter-reset {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .doctors-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+}

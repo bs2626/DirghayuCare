@@ -1,0 +1,256 @@
+/* src/CSS/AdminDoctors.css */
+/* Inherit the base admin dashboard styles */
+.admin-dashboard {
+    display: flex;
+    min-height: 100vh;
+    background-color: #f5f7fa;
+}
+
+.admin-sidebar {
+    width: 250px;
+    background-color: #182a3c;
+    color: white;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-sidebar-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-sidebar-header h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.admin-nav {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 0;
+}
+
+.admin-nav-link {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    padding: 0.8rem 1.5rem;
+    transition: all 0.3s;
+    border-left: 3px solid transparent;
+}
+
+.admin-nav-link:hover, .admin-nav-link.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-left-color: #0070c0;
+}
+
+.admin-logout-btn {
+    margin-top: auto;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 0.8rem 1.5rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 2rem;
+    font-size: 1rem;
+}
+
+.admin-logout-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.admin-main {
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+}
+
+.admin-header {
+    margin-bottom: 2rem;
+}
+
+.admin-header h1 {
+    font-size: 1.8rem;
+    color: #333;
+    margin: 0;
+}
+
+.admin-content {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 2rem;
+}
+
+/* Doctors management specific styles */
+.admin-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.search-box {
+    flex: 1;
+    max-width: 400px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    font-size: 0.95rem;
+    transition: border-color 0.3s;
+}
+
+.search-input:focus {
+    border-color: #0070c0;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 112, 192, 0.1);
+}
+
+.add-doctor-btn {
+    display: inline-block;
+    background-color: #00a651;
+    color: white;
+    text-decoration: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 5px;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.add-doctor-btn:hover {
+    background-color: #008d44;
+}
+
+/* Table styles */
+.doctors-table-container {
+    overflow-x: auto;
+}
+
+.doctors-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.doctors-table th, .doctors-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.doctors-table th {
+    background-color: #f5f7fa;
+    font-weight: 600;
+    color: #333;
+}
+
+.doctors-table tbody tr:hover {
+    background-color: #f9fcff;
+}
+
+.doctor-thumbnail {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.edit-btn, .delete-btn {
+    padding: 0.5rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.edit-btn {
+    background-color: #0070c0;
+    color: white;
+    text-decoration: none;
+}
+
+.edit-btn:hover {
+    background-color: #005a9e;
+}
+
+.delete-btn {
+    background-color: #e53935;
+    color: white;
+    border: none;
+}
+
+.delete-btn:hover {
+    background-color: #c62828;
+}
+
+.loading-indicator, .error-message, .no-doctors-message {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.error-message {
+    color: #e53935;
+}
+
+/* Responsive styles */
+@media screen and (max-width: 1000px) {
+    .admin-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .search-box {
+        max-width: 100%;
+        width: 100%;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .admin-dashboard {
+        flex-direction: column;
+    }
+
+    .admin-sidebar {
+        width: 100%;
+        height: auto;
+    }
+
+    .admin-main {
+        padding: 1rem;
+    }
+
+    .admin-content {
+        padding: 1.5rem;
+    }
+
+    .doctors-table th, .doctors-table td {
+        padding: 0.8rem 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+
+    .edit-btn, .delete-btn {
+        text-align: center;
+    }
+}
