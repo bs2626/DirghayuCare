@@ -11,6 +11,15 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Serve static files from the React app in production
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.join(__dirname, '../Frontend/build')));
+
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, '../Frontend/build', 'index.html'));
+    });
+}
+
 // MongoDB connection
 const mongoose = require('mongoose');
 
@@ -27,16 +36,6 @@ const doctorRoutes = require('./src/Backend/routes/doctorRoutes');
 // API routes
 app.use('/api', doctorRoutes);
 
-// Serve static files from the React app in production
-if (process.env.NODE_ENV === 'production') {
-    // Serve static files from the built React app
-    app.use(express.static(path.join(__dirname, 'build')));
-
-    // Handle React Router - send all non-API routes to React app
-    app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname, 'build', 'index.html'));
-    });
-}
 
 // Port configuration for Heroku
 const PORT = process.env.PORT || 5000;
