@@ -1,0 +1,16 @@
+[build]
+command = "npm run build"
+functions = "netlify/functions"
+publish = "build"
+
+# Redirect API calls to Netlify Functions
+[[redirects]]
+from = "/api/*"
+to = "/.netlify/functions/api/:splat"
+status = 200
+
+# Handle React Router (SPA) - this should come AFTER the API redirect
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
