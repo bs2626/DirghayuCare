@@ -1,11 +1,12 @@
 const express = require('express');
 const serverless = require('serverless-http');
 const cors = require('cors');
+const mongoose = require('mongoose');
 
-// Create a new Express app specifically for the function
+// Create Express app
 const app = express();
 
-// Enable CORS
+// Middleware
 app.use(cors({
     origin: [
         'http://localhost:3000',
@@ -17,31 +18,85 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Simple test route
-app.get('/api/test', (req, res) => {
+// Test endpoint
+app.get('/test', (req, res) => {
     res.json({
         message: 'Function is working!',
         timestamp: new Date().toISOString()
     });
 });
 
-// Try to import and use your routes
-try {
-    console.log('Attempting to import doctor routes...');
-    const doctorRoutes = require('../../src/Backend/routes/doctorRoutes');
-    app.use('/api/doctors', doctorRoutes);
-    console.log('Doctor routes imported successfully');
-} catch (error) {
-    console.error('Error importing doctor routes:', error);
+// MongoDB connection test endpoint
+app.get('/db-test', async (req, res) => {
+    try {
+        console.log('Testing MongoDB connection...');
 
-    // Create a basic doctors route as fallback
-    app.get('/api/doctors', (req, res) => {
+        // Check if MONGODB_URI exists
+        if (!process.env.MONGODB_URI) {
+            return res.status(500).json({
+                error: 'MONGODB_URI not set',
+                env_vars: Object.keys(process.env).filter(key => key.startsWith('MONGODB'))
+            });
+        }
+
+        console.log('MONGODB_URI exists');
+
+        // Check connection state
+        const state = mongoose.connection.readyState;
+        console.log('Mongoose connection state:', state);
+
+        // Try to connect if not connected
+        if (state === 0) {
+            console.log('Attempting to connect to MongoDB...');
+            await mongoose.connect(process.env.MONGODB_URI, {
+                useNewUrlParser: true,
+                useUnifiedTopology: true,
+                serverSelectionTimeoutMS: 5000, // 5 second timeout
+            });
+            console.log('Connected to MongoDB');
+        }
+
+        res.json({
+            message: 'MongoDB connection test successful',
+            connectionState: state,
+            dbName: mongoose.connection.db ? mongoose.connection.db.databaseName : 'Not connected'
+        });
+    } catch (error) {
+        console.error('MongoDB connection error:', error);
         res.status(500).json({
-            error: 'Could not load doctor routes',
+            error: 'MongoDB connection failed',
+            details: error.message,
+            stack: error.stack
+        });
+    }
+});
+
+// Simple doctors endpoint without full route import
+app.get('/doctors', async (req, res) => {
+    try {
+        console.log('Doctors endpoint called');
+
+        // Check if connected to DB
+        if (mongoose.connection.readyState !== 1) {
+            return res.status(500).json({ error: 'Database not connected' });
+        }
+
+        // Try to access a simple collection
+        const collections = await mongoose.connection.db.listCollections().toArray();
+
+        res.json({
+            message: 'Database accessible',
+            collections: collections.map(c => c.name),
+            connectionState: mongoose.connection.readyState
+        });
+    } catch (error) {
+        console.error('Doctors endpoint error:', error);
+        res.status(500).json({
+            error: 'Failed to access database',
             details: error.message
         });
-    });
-}
+    }
+});
 
 // Export for Netlify
 exports.handler = serverless(app);
