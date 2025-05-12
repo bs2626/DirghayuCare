@@ -1,23 +1,13 @@
 const express = require('express');
-const dotenv = require('dotenv');
 const cors = require('cors');
-const connectDB = require('./config/db');
-const { errorHandler } = require('./middleware/errorMiddleware');
+const dotenv = require('dotenv');
 
 // Load environment variables
 dotenv.config();
 
-// Connect to database
-connectDB();
-
-// Initialize app
 const app = express();
 
-// Body parser middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Enable CORS
+// Middleware
 app.use(cors({
     origin: [
         'http://localhost:3000',
@@ -26,21 +16,42 @@ app.use(cors({
     credentials: true
 }));
 
-// Routes
-app.use('/api/contact', require('./routes/contactRoutes'));
-app.use('/api/users', require('./routes/userRoutes'));
-app.use('/api/doctors', require('./routes/doctorRoutes'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Basic route for testing
-app.get('/', (req, res) => {
-    res.json({ message: 'Welcome to Dirghayu Care API' });
+// Database connection (if using MongoDB)
+const mongoose = require('mongoose');
+if (process.env.MONGODB_URI) {
+    mongoose.connect(process.env.MONGODB_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    }).catch(err => console.error('MongoDB connection error:', err));
+}
+
+// Import routes
+const doctorRoutes = require('./routes/doctorRoutes');
+
+// Use routes
+app.use('/api/doctors', doctorRoutes);
+
+// Test endpoint
+app.get('/api/test', (req, res) => {
+    res.json({ message: 'API is working!', timestamp: new Date().toISOString() });
 });
 
-// Error handler middleware
-app.use(errorHandler);
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'Something went wrong!' });
+});
 
-// Start server
+// For local development
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
+
+// Export the app for Netlify Functions
+module.exports = app;
