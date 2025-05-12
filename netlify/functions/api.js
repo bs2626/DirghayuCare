@@ -1,41 +1,47 @@
 const express = require('express');
 const serverless = require('serverless-http');
+const cors = require('cors');
 
-// Create Express app
+// Create a new Express app specifically for the function
 const app = express();
 
-// Middleware
+// Enable CORS
+app.use(cors({
+    origin: [
+        'http://localhost:3000',
+        'https://comforting-moxie-7d25bf.netlify.app'
+    ],
+    credentials: true
+}));
+
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Test route
-app.get('/', (req, res) => {
+// Simple test route
+app.get('/api/test', (req, res) => {
     res.json({
-        message: 'API function is working!',
-        timestamp: new Date().toISOString(),
-        path: req.path
-    });
-});
-
-// More specific test route
-app.get('/test', (req, res) => {
-    res.json({
-        message: 'Test endpoint working!',
+        message: 'Function is working!',
         timestamp: new Date().toISOString()
     });
 });
 
-// Handle all other routes
-app.all('/*', (req, res) => {
-    res.json({
-        message: 'Catch-all route',
-        path: req.path,
-        method: req.method
-    });
-});
+// Try to import and use your routes
+try {
+    console.log('Attempting to import doctor routes...');
+    const doctorRoutes = require('../../src/Backend/routes/doctorRoutes');
+    app.use('/api/doctors', doctorRoutes);
+    console.log('Doctor routes imported successfully');
+} catch (error) {
+    console.error('Error importing doctor routes:', error);
 
-// Export the serverless function
-const handler = serverless(app);
-module.exports.handler = async (event, context) => {
-    console.log('Function invoked with:', event.path);
-    return await handler(event, context);
-};
+    // Create a basic doctors route as fallback
+    app.get('/api/doctors', (req, res) => {
+        res.status(500).json({
+            error: 'Could not load doctor routes',
+            details: error.message
+        });
+    });
+}
+
+// Export for Netlify
+exports.handler = serverless(app);
