@@ -2,7 +2,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 
 const app = express();
 
@@ -21,15 +21,20 @@ mongoose.connect(process.env.MONGODB_URI, {
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.error('MongoDB connection error:', err));
 
-// Import routes (correct relative paths)
+// Import routes
 const doctorRoutes = require('./routes/doctorRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const userRoutes = require('./routes/userRoutes');
 
-// API routes
-app.use('/api', doctorRoutes);
-app.use('/api', contactRoutes);
-app.use('/api', userRoutes);
+// Mount routes with correct base paths
+app.use('/api/doctors', doctorRoutes);
+app.use('/api/contact', contactRoutes);
+app.use('/api/users', userRoutes);
+
+// Basic route for testing
+app.get('/', (req, res) => {
+    res.json({ message: 'Welcome to Dirghayu Care API' });
+});
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
