@@ -15,10 +15,16 @@ const app = express();
 
 // Body parser middleware
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 
 // Enable CORS
-app.use(cors());
+app.use(cors({
+    origin: [
+        'http://localhost:3000',
+        'https://comforting-moxie-7d25bf.netlify.app'
+    ],
+    credentials: true
+}));
 
 // Routes
 app.use('/api/contact', require('./routes/contactRoutes'));
