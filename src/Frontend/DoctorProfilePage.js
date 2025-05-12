@@ -8,6 +8,7 @@ const DoctorProfilePage = () => {
     const [doctor, setDoctor] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const API_URL = process.env.REACT_APP_API_URL || '/api';
 
     // Log the ID to debug
     console.log("Doctor ID from URL params:", id);
@@ -16,11 +17,12 @@ const DoctorProfilePage = () => {
         const fetchDoctor = async () => {
             try {
                 setLoading(true);
-                const apiUrl = `http://localhost:5000/api/doctors/${id}`;
-                console.log("Fetching from URL:", apiUrl);
+                
 
-                const response = await axios.get(apiUrl);
-                console.log("Doctor data received:", response.data);
+                const response = await axios.get(
+                    `${API_URL}/${id}`
+                );
+
 
                 setDoctor(response.data.data);
                 setLoading(false);

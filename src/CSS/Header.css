@@ -27,7 +27,7 @@
 }
 
 .header-logo {
-    height: 50px;
+    height: 40px;
     width: auto;
     border-radius: 50%;
 }
@@ -232,7 +232,7 @@
 
 @media screen and (max-width: 576px) {
     .header-logo {
-        height: 60px;
+        height: 40px;
     }
 
     .header-cta {
