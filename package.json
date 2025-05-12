@@ -2,13 +2,13 @@
   "name": "my-react-site",
   "version": "0.1.0",
   "private": true,
-  "main": "Backend/server.js",
+  "main": "src/Backend/server.js",
   "engines": {
     "node": "18.x",
     "npm": "9.x"
   },
   "scripts": {
-    "start": "node Backend/server.js",
-    "heroku-postbuild": "cd Frontend && npm install && npm run build"
+    "start": "node src/Backend/server.js",
+    "heroku-postbuild": "npm install && npm run build"
   }
 }
