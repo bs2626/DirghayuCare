@@ -18,7 +18,16 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Test endpoint
+// Base route (when accessing /.netlify/functions/api directly)
+app.get('/', (req, res) => {
+    res.json({
+        message: 'API Function is running!',
+        timestamp: new Date().toISOString(),
+        available_endpoints: ['/test', '/db-test', '/doctors']
+    });
+});
+
+// Test endpoint (accessible at /api/test)
 app.get('/test', (req, res) => {
     res.json({
         message: 'Function is working!',
@@ -26,7 +35,7 @@ app.get('/test', (req, res) => {
     });
 });
 
-// MongoDB connection test endpoint
+// MongoDB connection test endpoint (accessible at /api/db-test)
 app.get('/db-test', async (req, res) => {
     try {
         console.log('Testing MongoDB connection...');
@@ -66,12 +75,12 @@ app.get('/db-test', async (req, res) => {
         res.status(500).json({
             error: 'MongoDB connection failed',
             details: error.message,
-            stack: error.stack
+            mongodbUri: process.env.MONGODB_URI ? 'Set' : 'Not set'
         });
     }
 });
 
-// Simple doctors endpoint without full route import
+// Simple doctors endpoint (accessible at /api/doctors)
 app.get('/doctors', async (req, res) => {
     try {
         console.log('Doctors endpoint called');
