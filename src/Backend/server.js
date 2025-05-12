@@ -1,57 +1,47 @@
+// server.js - Heroku entry point (create this in your project root)
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
-
-// Load environment variables
-dotenv.config();
+const path = require('path');
+require('dotenv').config();
 
 const app = express();
 
 // Middleware
-app.use(cors({
-    origin: [
-        'http://localhost:3000',
-        'https://comforting-moxie-7d25bf.netlify.app'
-    ],
-    credentials: true
-}));
+app.use(cors());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Database connection (if using MongoDB)
+// MongoDB connection
 const mongoose = require('mongoose');
-if (process.env.MONGODB_URI) {
-    mongoose.connect(process.env.MONGODB_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    }).catch(err => console.error('MongoDB connection error:', err));
-}
+
+mongoose.connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+})
+    .then(() => console.log('MongoDB connected'))
+    .catch(err => console.error('MongoDB connection error:', err));
 
 // Import routes
-const doctorRoutes = require('./routes/doctorRoutes');
+const doctorRoutes = require('./src/Backend/routes/doctorRoutes');
 
-// Use routes
-app.use('/api/doctors', doctorRoutes);
+// API routes
+app.use('/api', doctorRoutes);
 
-// Test endpoint
-app.get('/api/test', (req, res) => {
-    res.json({ message: 'API is working!', timestamp: new Date().toISOString() });
-});
+// Serve static files from the React app in production
+if (process.env.NODE_ENV === 'production') {
+    // Serve static files from the built React app
+    app.use(express.static(path.join(__dirname, 'build')));
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error('Error:', err);
-    res.status(500).json({ error: 'Something went wrong!' });
-});
-
-// For local development
-const PORT = process.env.PORT || 5000;
-if (require.main === module) {
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
+    // Handle React Router - send all non-API routes to React app
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, 'build', 'index.html'));
     });
 }
 
-// Export the app for Netlify Functions
-module.exports = app;
+// Port configuration for Heroku
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+});
