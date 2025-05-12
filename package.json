@@ -26,6 +26,7 @@
     "multer": "^1.4.5-lts.2",
     "multer-storage-cloudinary": "^4.0.0",
     "react-i18next": "^12.3.1",
+    "serverless-http": "^3.2.0",
     "i18next": "^23.0.0"
   },
   "scripts": {
