@@ -1,21 +1,10 @@
 [build]
 command = "npm run build"
-functions = "netlify/functions"
 publish = "build"
+functions = "netlify/functions"
 
-# Environment variables that should be available to functions
-[build.environment]
-NODE_ENV = "production"
-
-# Redirect API calls to Netlify Functions
 [[redirects]]
 from = "/api/*"
 to = "/.netlify/functions/api/:splat"
 status = 200
 force = true
-
-# Handle client-side routing (for React Router)
-[[redirects]]
-from = "/*"
-to = "/index.html"
-status = 200
