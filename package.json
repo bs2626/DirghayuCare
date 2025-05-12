@@ -29,7 +29,7 @@
     "i18next": "^23.0.0"
   },
   "scripts": {
-    "build": "cd Backend && npm install && cd ../Frontend && inpm install && npm run build",
+    "build": "cd Backend && npm install && cd ../Frontend && npm install && npm run build",
     "start": "node Backend/server.js",
     "test": "echo \"No Error\" && exit 1"
   },
