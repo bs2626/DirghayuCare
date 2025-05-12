@@ -12,6 +12,8 @@ const AdminDoctors = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+    const API_URL = process.env.REACT_APP_API_URL || '/api';
+
     useEffect(() => {
         // Check if admin is authenticated
         const adminAuth = localStorage.getItem('adminAuth');
@@ -26,7 +28,8 @@ const AdminDoctors = () => {
     const fetchDoctors = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:5000/api/doctors');
+            const response = await axios.get(
+                `${API_URL}/doctors`);
             setDoctors(response.data.data);
             setLoading(false);
         } catch (err) {

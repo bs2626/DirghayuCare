@@ -31,11 +31,6 @@ app.use('/api/doctors', doctorRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/users', userRoutes);
 
-// Basic route for testing
-app.get('/', (req, res) => {
-    res.json({ message: 'Welcome to Dirghayu Care API' });
-});
-
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../../build')));
