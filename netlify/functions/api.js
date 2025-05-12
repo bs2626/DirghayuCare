@@ -1,111 +1,55 @@
-const express = require('express');
-const serverless = require('serverless-http');
-const cors = require('cors');
-const mongoose = require('mongoose');
+// Simple Netlify Function - Starting Fresh
+exports.handler = async (event, context) => {
+    console.log('Function called:', event.httpMethod, event.path);
 
-// Create Express app
-const app = express();
+    // Log the full event for debugging
+    console.log('Full event:', JSON.stringify(event, null, 2));
 
-// Middleware
-app.use(cors({
-    origin: [
-        'http://localhost:3000',
-        'https://comforting-moxie-7d25bf.netlify.app'
-    ],
-    credentials: true
-}));
+    // Handle any path
+    const path = event.path;
+    const method = event.httpMethod;
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+    // Basic CORS headers
+    const headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Content-Type': 'application/json'
+    };
 
-// Base route (when accessing /.netlify/functions/api directly)
-app.get('/', (req, res) => {
-    res.json({
-        message: 'API Function is running!',
+    // Handle OPTIONS requests
+    if (method === 'OPTIONS') {
+        return {
+            statusCode: 200,
+            headers,
+            body: ''
+        };
+    }
+
+    // Return different responses based on path
+    let response = {
+        message: `Function is working! Path: ${path}`,
+        method: method,
         timestamp: new Date().toISOString(),
-        available_endpoints: ['/test', '/db-test', '/doctors']
-    });
-});
-
-// Test endpoint (accessible at /api/test)
-app.get('/test', (req, res) => {
-    res.json({
-        message: 'Function is working!',
-        timestamp: new Date().toISOString()
-    });
-});
-
-// MongoDB connection test endpoint (accessible at /api/db-test)
-app.get('/db-test', async (req, res) => {
-    try {
-        console.log('Testing MongoDB connection...');
-
-        // Check if MONGODB_URI exists
-        if (!process.env.MONGODB_URI) {
-            return res.status(500).json({
-                error: 'MONGODB_URI not set',
-                env_vars: Object.keys(process.env).filter(key => key.startsWith('MONGODB'))
-            });
+        pathInfo: {
+            fullPath: path,
+            splitPath: path.split('/'),
+            lastSegment: path.split('/').pop()
         }
+    };
 
-        console.log('MONGODB_URI exists');
-
-        // Check connection state
-        const state = mongoose.connection.readyState;
-        console.log('Mongoose connection state:', state);
-
-        // Try to connect if not connected
-        if (state === 0) {
-            console.log('Attempting to connect to MongoDB...');
-            await mongoose.connect(process.env.MONGODB_URI, {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-                serverSelectionTimeoutMS: 5000, // 5 second timeout
-            });
-            console.log('Connected to MongoDB');
-        }
-
-        res.json({
-            message: 'MongoDB connection test successful',
-            connectionState: state,
-            dbName: mongoose.connection.db ? mongoose.connection.db.databaseName : 'Not connected'
-        });
-    } catch (error) {
-        console.error('MongoDB connection error:', error);
-        res.status(500).json({
-            error: 'MongoDB connection failed',
-            details: error.message,
-            mongodbUri: process.env.MONGODB_URI ? 'Set' : 'Not set'
-        });
+    // Add specific responses for specific paths
+    if (path.includes('test')) {
+        response.endpoint = 'test endpoint';
+    } else if (path.includes('doctors')) {
+        response.endpoint = 'doctors endpoint';
+    } else if (path.includes('db-test')) {
+        response.endpoint = 'database test endpoint';
     }
-});
 
-// Simple doctors endpoint (accessible at /api/doctors)
-app.get('/doctors', async (req, res) => {
-    try {
-        console.log('Doctors endpoint called');
-
-        // Check if connected to DB
-        if (mongoose.connection.readyState !== 1) {
-            return res.status(500).json({ error: 'Database not connected' });
-        }
-
-        // Try to access a simple collection
-        const collections = await mongoose.connection.db.listCollections().toArray();
-
-        res.json({
-            message: 'Database accessible',
-            collections: collections.map(c => c.name),
-            connectionState: mongoose.connection.readyState
-        });
-    } catch (error) {
-        console.error('Doctors endpoint error:', error);
-        res.status(500).json({
-            error: 'Failed to access database',
-            details: error.message
-        });
-    }
-});
-
-// Export for Netlify
-exports.handler = serverless(app);
+    return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify(response, null, 2)
+    };
+};
