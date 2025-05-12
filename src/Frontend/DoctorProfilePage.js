@@ -17,10 +17,10 @@ const DoctorProfilePage = () => {
         const fetchDoctor = async () => {
             try {
                 setLoading(true);
-                
+
 
                 const response = await axios.get(
-                    `${API_URL}/${id}`
+                    `${API_URL}/doctors/${id}`
                 );
 
 

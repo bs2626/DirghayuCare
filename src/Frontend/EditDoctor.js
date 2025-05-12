@@ -24,6 +24,8 @@ const EditDoctor = () => {
         available: true
     });
     const [profileImage, setProfileImage] = useState(null);
+    const API_URL = process.env.REACT_APP_API_URL || '/api';
+
 
     useEffect(() => {
         // Check if admin is authenticated
@@ -39,7 +41,9 @@ const EditDoctor = () => {
     const fetchDoctorData = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`http://localhost:5000/api/doctors/${id}`);
+            const response = await axios.get(
+                `${API_URL}/doctors/${id}`
+            );
             const doctor = response.data.data;
 
             setDoctorData({
