@@ -10,22 +10,23 @@ async function connectDB() {
                 useNewUrlParser: true,
                 useUnifiedTopology: true,
             });
-            console.log('MongoDB connected');
+            console.log('MongoDB connected successfully');
         } catch (error) {
             console.error('MongoDB connection error:', error);
+            throw error;
         }
     }
 }
 
-// Connect to database
-connectDB();
+// Initialize database connection
+connectDB().catch(console.error);
 
 // Create Express app
 const app = express();
 
 // Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // CORS
 const cors = require('cors');
@@ -39,35 +40,58 @@ app.use(cors({
 }));
 
 // Import your doctor routes
-try {
-    console.log('Importing doctor routes...');
-    const doctorRoutes = require('../../src/Backend/routes/doctorRoutes');
+console.log('=== Importing Doctor Routes ===');
+let doctorRoutes = null;
 
-    // Your routes expect /api/doctors, so we mount them at /api
-    // This way when the path is /doctors, it goes to /api/doctors in your routes
+try {
+    // Correct path with 's' in Routes
+    console.log('Importing doctorRoutes from: ../../src/Backend/routes/doctorRoutes');
+    doctorRoutes = require('../../src/Backend/routes/doctorRoutes');
+    console.log('✅ Doctor routes imported successfully');
+} catch (error) {
+    console.error('❌ Error importing doctor routes:', error.message);
+    console.error('Error details:', error);
+}
+
+// Set up routes
+if (doctorRoutes) {
+    // Your routes expect /api prefix, so mount them at /api
     app.use('/api', doctorRoutes);
     console.log('Doctor routes mounted at /api');
-} catch (error) {
-    console.error('Error importing doctor routes:', error);
 
-    // Fallback route for debugging
+    // Add a test route to verify mounting
+    app.get('/test-routes', (req, res) => {
+        res.json({
+            message: 'Routes mounted successfully',
+            mounted: true,
+            availableEndpoints: [
+                '/api/doctors',
+                '/api/doctors/stats',
+                '/api/doctors/:id'
+            ]
+        });
+    });
+} else {
+    console.log('❌ Doctor routes not available - setting up fallback');
     app.get('/doctors', (req, res) => {
         res.status(500).json({
-            error: 'Could not import doctor routes',
-            details: error.message
+            error: 'Doctor routes not imported',
+            message: 'Could not load doctor routes module'
         });
     });
 }
 
-// Test route
+// Basic test endpoint
 app.get('/test', (req, res) => {
     res.json({
-        message: 'Function test working',
-        timestamp: new Date().toISOString()
+        message: 'API function is working',
+        timestamp: new Date().toISOString(),
+        routesLoaded: !!doctorRoutes,
+        dbConnected: mongoose.connection.readyState === 1
     });
 });
 
-// Create the serverless handler
+// Create serverless handler
 const handler = serverless(app);
 
 // Export for Netlify Functions
@@ -75,26 +99,20 @@ exports.handler = async (event, context) => {
     console.log('=== Netlify Function Called ===');
     console.log('Method:', event.httpMethod);
     console.log('Original path:', event.path);
+    console.log('Headers:', event.headers);
 
-    // Don't modify the path - let it come through as /api/doctors
-    // Your routes are expecting /api/doctors anyway
-    let adjustedEvent = { ...event };
-
-    // The redirect sends /api/doctors to /.netlify/functions/api/doctors
-    // But serverless-http will see just /doctors
-    // So we need to reconstruct the /api prefix for your routes
-    if (!event.path.startsWith('/api') && event.path !== '/test') {
-        adjustedEvent.path = '/api' + event.path;
-        console.log('Adjusted path:', adjustedEvent.path);
-    }
+    // The path comes in as /api/doctors from the redirect
+    // We need to pass it through unchanged since our routes expect /api prefix
 
     try {
-        const result = await handler(adjustedEvent, context);
+        const result = await handler(event, context);
         console.log('Handler result status:', result.statusCode);
         return result;
     } catch (error) {
         console.error('=== Handler Error ===');
-        console.error('Error:', error);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+
         return {
             statusCode: 500,
             headers: {
@@ -102,8 +120,9 @@ exports.handler = async (event, context) => {
                 'Access-Control-Allow-Origin': '*'
             },
             body: JSON.stringify({
-                error: 'Function error',
-                message: error.message
+                error: 'Function execution error',
+                message: error.message,
+                timestamp: new Date().toISOString()
             })
         };
     }
