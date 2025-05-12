@@ -1,209 +1,119 @@
-// Netlify Function with proper routing
+const express = require('express');
+const serverless = require('serverless-http');
 const mongoose = require('mongoose');
 
-exports.handler = async (event, context) => {
-    console.log('Function called:', event.httpMethod, event.path);
+// Connect to MongoDB
+async function connectDB() {
+    if (mongoose.connection.readyState === 0) {
+        try {
+            await mongoose.connect(process.env.MONGODB_URI, {
+                useNewUrlParser: true,
+                useUnifiedTopology: true,
+            });
+            console.log('MongoDB connected');
+        } catch (error) {
+            console.error('MongoDB connection error:', error);
+        }
+    }
+}
 
-    // Parse the path to get the actual endpoint
-    const path = event.path;
-    const method = event.httpMethod;
+// Connect to database
+connectDB();
 
-    // Remove the /api prefix to get the actual route
-    const route = path.replace('/api', '') || '/';
+// Import your existing Express app
+let app;
+try {
+    // Import your existing backend server
+    app = require('../../src/Backend/server');
+    console.log('Successfully imported existing backend server');
+} catch (error) {
+    console.error('Error importing backend server:', error);
 
-    console.log('Parsed route:', route);
+    // Create minimal Express app as fallback
+    app = express();
+    app.use(express.json());
 
-    // Basic CORS headers
-    const headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Content-Type': 'application/json'
-    };
+    app.get('/test', (req, res) => {
+        res.json({ message: 'Fallback app - could not import backend server', error: error.message });
+    });
+}
 
-    // Handle OPTIONS requests
-    if (method === 'OPTIONS') {
-        return {
-            statusCode: 200,
-            headers,
-            body: ''
-        };
+// If your backend server doesn't export the app, create one and import routes
+if (!app || typeof app !== 'function') {
+    console.log('Creating new Express app and importing routes');
+
+    const newApp = express();
+
+    // Middleware
+    newApp.use(express.json());
+    newApp.use(express.urlencoded({ extended: true }));
+
+    // CORS
+    const cors = require('cors');
+    newApp.use(cors({
+        origin: [
+            'http://localhost:3000',
+            'https://comforting-moxie-7d25bf.netlify.app',
+            'https://dirghayucare.com'
+        ],
+        credentials: true
+    }));
+
+    // Import and use your routes
+    try {
+        const doctorRoutes = require('../../src/Backend/routes/doctorRoutes');
+
+        // Your routes are probably set up for /api/doctors already
+        // So we use them directly
+        newApp.use('/', doctorRoutes);
+
+        console.log('Successfully imported doctor routes');
+    } catch (error) {
+        console.error('Error importing doctor routes:', error);
+        newApp.get('/error', (req, res) => {
+            res.status(500).json({ error: 'Could not import routes', details: error.message });
+        });
     }
 
+    app = newApp;
+}
+
+// Create the serverless handler
+const handler = serverless(app);
+
+// Export for Netlify Functions
+exports.handler = async (event, context) => {
+    // Log the incoming request
+    console.log('Request:', event.httpMethod, event.path);
+
+    // Since we're using /api/* redirects, we need to handle the path correctly
+    // Netlify sends the full path including /api, but your routes expect paths without it
+
+    // Preserve the original path
+    const originalPath = event.path;
+
+    // If the path starts with /api, remove it for your backend routes
+    if (event.path.startsWith('/api')) {
+        event.path = event.path.replace('/api', '') || '/';
+    }
+
+    console.log('Modified path for backend:', event.path);
+
     try {
-        // Route handler
-        switch (route) {
-            case '/':
-            case '/test':
-                return {
-                    statusCode: 200,
-                    headers,
-                    body: JSON.stringify({
-                        message: 'API is working!',
-                        route: route,
-                        timestamp: new Date().toISOString()
-                    })
-                };
-
-            case '/db-test':
-                return await handleDbTest(headers);
-
-            case '/doctors':
-                return await handleDoctors(headers, event);
-
-            case '/doctors/stats':
-                return await handleDoctorStats(headers);
-
-            default:
-                return {
-                    statusCode: 404,
-                    headers,
-                    body: JSON.stringify({
-                        error: 'Route not found',
-                        path: path,
-                        route: route,
-                        availableRoutes: ['/test', '/db-test', '/doctors', '/doctors/stats']
-                    })
-                };
-        }
+        return await handler(event, context);
     } catch (error) {
-        console.error('Function error:', error);
+        console.error('Handler error:', error);
         return {
             statusCode: 500,
-            headers,
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
             body: JSON.stringify({
-                error: 'Internal server error',
-                message: error.message
+                error: 'Function error',
+                message: error.message,
+                originalPath: originalPath
             })
         };
     }
 };
-
-// Database test handler
-async function handleDbTest(headers) {
-    try {
-        console.log('Testing MongoDB connection...');
-
-        // Check if MONGODB_URI exists
-        if (!process.env.MONGODB_URI) {
-            return {
-                statusCode: 500,
-                headers,
-                body: JSON.stringify({
-                    error: 'MONGODB_URI not set',
-                    env_check: 'MONGODB_URI environment variable is missing'
-                })
-            };
-        }
-
-        console.log('MONGODB_URI found, testing connection...');
-
-        // Check current connection state
-        const currentState = mongoose.connection.readyState;
-        console.log('Current mongoose state:', currentState);
-
-        // Connect if not already connected
-        if (currentState === 0) {
-            console.log('Connecting to MongoDB...');
-            await mongoose.connect(process.env.MONGODB_URI, {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-                serverSelectionTimeoutMS: 5000,
-            });
-            console.log('Connected successfully');
-        }
-
-        // Test the connection by pinging
-        await mongoose.connection.db.admin().ping();
-        console.log('Database ping successful');
-
-        return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({
-                message: 'MongoDB connection successful',
-                connectionState: mongoose.connection.readyState,
-                databaseName: mongoose.connection.db.databaseName
-            })
-        };
-    } catch (error) {
-        console.error('MongoDB test error:', error);
-        return {
-            statusCode: 500,
-            headers,
-            body: JSON.stringify({
-                error: 'MongoDB connection failed',
-                message: error.message,
-                details: error.stack
-            })
-        };
-    }
-}
-
-// Doctors handler
-async function handleDoctors(headers, event) {
-    try {
-        // Check if connected to database
-        if (mongoose.connection.readyState !== 1) {
-            return {
-                statusCode: 500,
-                headers,
-                body: JSON.stringify({
-                    error: 'Database not connected',
-                    connectionState: mongoose.connection.readyState
-                })
-            };
-        }
-
-        // Simple test - just list collections for now
-        const collections = await mongoose.connection.db.listCollections().toArray();
-
-        return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({
-                message: 'Doctors endpoint working',
-                collections: collections.map(c => c.name),
-                method: event.httpMethod
-            })
-        };
-    } catch (error) {
-        console.error('Doctors handler error:', error);
-        return {
-            statusCode: 500,
-            headers,
-            body: JSON.stringify({
-                error: 'Failed to handle doctors request',
-                message: error.message
-            })
-        };
-    }
-}
-
-// Doctor stats handler
-async function handleDoctorStats(headers) {
-    try {
-        return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({
-                message: 'Doctor stats endpoint',
-                stats: {
-                    total: 0,
-                    active: 0
-                },
-                note: 'This is a placeholder - actual implementation needed'
-            })
-        };
-    } catch (error) {
-        console.error('Doctor stats error:', error);
-        return {
-            statusCode: 500,
-            headers,
-            body: JSON.stringify({
-                error: 'Failed to get doctor stats',
-                message: error.message
-            })
-        };
-    }
-}
