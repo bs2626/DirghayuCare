@@ -13,6 +13,7 @@ import AdminLogin from './Frontend/AdminLogin';
 import AdminDashboard from './Frontend/AdminDashboard';
 import AdminDoctors from './Frontend/AdminDoctors';
 import EditDoctor from "./Frontend/EditDoctor";
+import AdminLayout from "./Frontend/AdminLayout";
 
 function App() {
     return (
@@ -28,12 +29,12 @@ function App() {
                         <Route path="/register-doctor" element={<DoctorRegistrationForm />} />
                         <Route path="/doctors/:id" element={<DoctorProfilePage />} />
                         <Route path="/doctors" element={<DoctorList />} />
-                        <Route path="/admin/login" element={<AdminLogin />} />
-                        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                        <Route path="/admin/doctors" element={<AdminDoctors />} />
-                        <Route path="/admin/doctors/edit/:id" element={<EditDoctor />} />
-
-
+                        <Route path="/admin" element={<AdminLayout />}>
+                            <Route path="/admin/login" element={<AdminLogin />} />
+                            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                            <Route path="/admin/doctors" element={<AdminDoctors />} />
+                            <Route path="/admin/doctors/edit/:id" element={<EditDoctor />} />
+                        </Route>
                     </Routes>
                 </div>
 

@@ -10,171 +10,420 @@ const AdminDoctors = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [departmentFilter, setDepartmentFilter] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [doctorsPerPage] = useState(10);
+    const [sortField, setSortField] = useState('name');
+    const [sortDirection, setSortDirection] = useState('asc');
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [doctorToDelete, setDoctorToDelete] = useState(null);
+    const [selectedDoctors, setSelectedDoctors] = useState([]);
 
     const API_URL = process.env.REACT_APP_API_URL || '/api';
 
     useEffect(() => {
-        // Check if admin is authenticated
-        const adminAuth = localStorage.getItem('adminAuth');
-        if (adminAuth !== 'yes') {
-            navigate('/admin/login');
-        } else {
-            setIsAuthenticated(true);
-            fetchDoctors();
-        }
-    }, [navigate]);
+        fetchDoctors();
+    }, []);
 
     const fetchDoctors = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(
-                `${API_URL}/doctors`);
-            setDoctors(response.data.data);
-            setLoading(false);
+            const response = await axios.get(`${API_URL}/doctors`);
+            setDoctors(response.data.data || []);
+            setError(null);
         } catch (err) {
             setError('Failed to fetch doctors');
+            console.error(err);
+        } finally {
             setLoading(false);
+        }
+    };
+
+    // Filter and search doctors
+    const filteredDoctors = doctors.filter(doctor => {
+        const matchesSearch = searchTerm === '' ||
+            doctor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            doctor.specialty?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            doctor.department?.toLowerCase().includes(searchTerm.toLowerCase());
+
+        const matchesDepartment = departmentFilter === '' || doctor.department === departmentFilter;
+
+        return matchesSearch && matchesDepartment;
+    });
+
+    // Sort doctors
+    const sortedDoctors = [...filteredDoctors].sort((a, b) => {
+        let aValue = a[sortField] || '';
+        let bValue = b[sortField] || '';
+
+        // Handle numeric fields
+        if (sortField === 'yearsOfExperience') {
+            aValue = parseInt(aValue) || 0;
+            bValue = parseInt(bValue) || 0;
+        }
+
+        if (sortDirection === 'asc') {
+            return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+        } else {
+            return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+        }
+    });
+
+    // Pagination
+    const indexOfLastDoctor = currentPage * doctorsPerPage;
+    const indexOfFirstDoctor = indexOfLastDoctor - doctorsPerPage;
+    const currentDoctors = sortedDoctors.slice(indexOfFirstDoctor, indexOfLastDoctor);
+    const totalPages = Math.ceil(sortedDoctors.length / doctorsPerPage);
+
+    // Get unique departments for filter
+    const departments = [...new Set(doctors.map(doctor => doctor.department).filter(Boolean))];
+
+    const handleSort = (field) => {
+        if (field === sortField) {
+            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortDirection('asc');
+        }
+    };
+
+    const handleDelete = async (doctorId) => {
+        try {
+            await axios.delete(`${API_URL}/doctors/${doctorId}`);
+            setDoctors(doctors.filter(doctor => doctor._id !== doctorId));
+            setShowDeleteModal(false);
+            setDoctorToDelete(null);
+        } catch (err) {
+            alert('Failed to delete doctor');
             console.error(err);
         }
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('adminAuth');
-        navigate('/admin/login');
+    const handleSelectDoctor = (doctorId) => {
+        setSelectedDoctors(prev => {
+            if (prev.includes(doctorId)) {
+                return prev.filter(id => id !== doctorId);
+            } else {
+                return [...prev, doctorId];
+            }
+        });
     };
 
-    const handleSearch = (e) => {
-        setSearchTerm(e.target.value);
+    const handleSelectAll = () => {
+        if (selectedDoctors.length === currentDoctors.length) {
+            setSelectedDoctors([]);
+        } else {
+            setSelectedDoctors(currentDoctors.map(doctor => doctor._id));
+        }
     };
 
-    const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this doctor?')) {
+    const handleBulkDelete = async () => {
+        if (window.confirm(`Are you sure you want to delete ${selectedDoctors.length} doctors?`)) {
             try {
-                await axios.delete(`http://localhost:5000/api/doctors/${id}`);
-                // Refresh the doctors list
-                fetchDoctors();
+                await Promise.all(selectedDoctors.map(id =>
+                    axios.delete(`${API_URL}/doctors/${id}`)
+                ));
+                setDoctors(doctors.filter(doctor => !selectedDoctors.includes(doctor._id)));
+                setSelectedDoctors([]);
             } catch (err) {
-                alert('Failed to delete doctor');
+                alert('Error deleting doctors');
                 console.error(err);
             }
         }
     };
 
-    // Filter doctors based on search term
-    const filteredDoctors = searchTerm
-        ? doctors.filter(doctor =>
-            doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            doctor.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            doctor.specialty.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-        : doctors;
-
-    if (!isAuthenticated) {
-        return null; // Don't render anything while checking authentication
+    if (loading) {
+        return (
+            <div className="loading-container">
+                <div className="loading-spinner"></div>
+                <p>Loading doctors...</p>
+            </div>
+        );
     }
 
     return (
-        <div className="admin-dashboard">
-            <div className="admin-sidebar">
-                <div className="admin-sidebar-header">
-                    <h2>Admin Panel</h2>
-                </div>
-                <nav className="admin-nav">
-                    <Link to="/admin/dashboard" className="admin-nav-link">
-                        Dashboard
-                    </Link>
-                    <Link to="/admin/doctors" className="admin-nav-link active">
-                        Manage Doctors
-                    </Link>
-                    <button onClick={handleLogout} className="admin-logout-btn">
-                        Logout
-                    </button>
-                </nav>
+        <div className="admin-doctors">
+            <div className="doctors-header">
+                <h1>Manage Doctors</h1>
+                <Link to="/register-doctor" className="add-doctor-btn">
+                    <span className="btn-icon">+</span>
+                    Add New Doctor
+                </Link>
             </div>
-            <div className="admin-main">
-                <div className="admin-header">
-                    <h1>Manage Doctors</h1>
-                </div>
-                <div className="admin-content">
-                    <div className="admin-toolbar">
-                        <div className="search-box">
-                            <input
-                                type="text"
-                                placeholder="Search doctors..."
-                                value={searchTerm}
-                                onChange={handleSearch}
-                                className="search-input"
-                            />
-                        </div>
-                        <div className="admin-actions">
-                            <Link to="/register-doctor" className="add-doctor-btn">
-                                Add New Doctor
-                            </Link>
-                        </div>
-                    </div>
 
-                    {loading ? (
-                        <div className="loading-indicator">Loading doctors...</div>
-                    ) : error ? (
-                        <div className="error-message">{error}</div>
-                    ) : filteredDoctors.length === 0 ? (
-                        <div className="no-doctors-message">
-                            {searchTerm ? 'No doctors match your search' : 'No doctors found'}
-                        </div>
-                    ) : (
-                        <div className="doctors-table-container">
-                            <table className="doctors-table">
-                                <thead>
-                                <tr>
-                                    <th>Photo</th>
-                                    <th>Name</th>
-                                    <th>Department</th>
-                                    <th>Specialty</th>
-                                    <th>Experience</th>
-                                    <th>Actions</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {filteredDoctors.map(doctor => (
-                                    <tr key={doctor._id}>
-                                        <td>
+            <div className="doctors-controls">
+                <div className="search-filter-container">
+                    <input
+                        type="text"
+                        placeholder="Search doctors..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="search-input"
+                    />
+                    <select
+                        value={departmentFilter}
+                        onChange={(e) => setDepartmentFilter(e.target.value)}
+                        className="filter-select"
+                    >
+                        <option value="">All Departments</option>
+                        {departments.map(dept => (
+                            <option key={dept} value={dept}>{dept}</option>
+                        ))}
+                    </select>
+                </div>
+
+                {selectedDoctors.length > 0 && (
+                    <div className="bulk-actions">
+                        <span className="selected-count">
+                            {selectedDoctors.length} selected
+                        </span>
+                        <button onClick={handleBulkDelete} className="bulk-delete-btn">
+                            Delete Selected
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            {error && (
+                <div className="error-message">
+                    <p>{error}</p>
+                </div>
+            )}
+
+            <div className="doctors-table-container">
+                {/* Desktop Table View */}
+                <div className="desktop-view">
+                    <table className="doctors-table">
+                        <thead>
+                        <tr>
+                            <th>
+                                <input
+                                    type="checkbox"
+                                    checked={selectedDoctors.length === currentDoctors.length && currentDoctors.length > 0}
+                                    onChange={handleSelectAll}
+                                />
+                            </th>
+                            <th>Photo</th>
+                            <th onClick={() => handleSort('name')} className="sortable">
+                                Name {sortField === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
+                            </th>
+                            <th onClick={() => handleSort('department')} className="sortable">
+                                Department {sortField === 'department' && (sortDirection === 'asc' ? '↑' : '↓')}
+                            </th>
+                            <th onClick={() => handleSort('specialty')} className="sortable">
+                                Specialty {sortField === 'specialty' && (sortDirection === 'asc' ? '↑' : '↓')}
+                            </th>
+                            <th onClick={() => handleSort('yearsOfExperience')} className="sortable">
+                                Experience {sortField === 'yearsOfExperience' && (sortDirection === 'asc' ? '↑' : '↓')}
+                            </th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {currentDoctors.map(doctor => (
+                            <tr key={doctor._id} className={selectedDoctors.includes(doctor._id) ? 'selected' : ''}>
+                                <td>
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedDoctors.includes(doctor._id)}
+                                        onChange={() => handleSelectDoctor(doctor._id)}
+                                    />
+                                </td>
+                                <td>
+                                    <div className="doctor-photo">
+                                        {doctor.image || doctor.profileImage ? (
                                             <img
-                                                src={doctor.image || '/default-doctor.jpg'}
+                                                src={doctor.image || doctor.profileImage}
                                                 alt={doctor.name}
-                                                className="doctor-thumbnail"
                                                 onError={(e) => {
-                                                    e.target.onerror = null;
-                                                    e.target.src = '/default-doctor.jpg';
+                                                    e.target.style.display = 'none';
+                                                    e.target.nextSibling.style.display = 'flex';
                                                 }}
                                             />
-                                        </td>
-                                        <td>{doctor.name}</td>
-                                        <td>{doctor.department}</td>
-                                        <td>{doctor.specialty}</td>
-                                        <td>{doctor.yearsOfExperience} years</td>
-                                        <td className="action-buttons">
-                                            <Link
-                                                to={`/admin/doctors/edit/${doctor._id}`}
-                                                className="edit-btn"
-                                            >
-                                                Edit
-                                            </Link>
-                                            <button
-                                                onClick={() => handleDelete(doctor._id)}
-                                                className="delete-btn"
-                                            >
-                                                Delete
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </table>
+                                        ) : null}
+                                        <div className="photo-placeholder" style={{ display: doctor.image || doctor.profileImage ? 'none' : 'flex' }}>
+                                            {doctor.name?.charAt(0) || '?'}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div className="doctor-name">
+                                        <span className="name">{doctor.name}</span>
+                                        <span className="id">ID: {doctor._id?.slice(-6)}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span className="department-badge">{doctor.department}</span>
+                                </td>
+                                <td>{doctor.specialty}</td>
+                                <td>{doctor.yearsOfExperience} years</td>
+                                <td>
+                                    <div className="action-buttons">
+                                        <button
+                                            onClick={() => navigate(`/doctors/${doctor._id}`)}
+                                            className="action-btn view-btn"
+                                            title="View"
+                                        >
+                                            👁️
+                                        </button>
+                                        <button
+                                            onClick={() => navigate(`/admin/doctors/edit/${doctor._id}`)}
+                                            className="action-btn edit-btn"
+                                            title="Edit"
+                                        >
+                                            ✏️
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setDoctorToDelete(doctor);
+                                                setShowDeleteModal(true);
+                                            }}
+                                            className="action-btn delete-btn"
+                                            title="Delete"
+                                        >
+                                            🗑️
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="mobile-view">
+                    {currentDoctors.map(doctor => (
+                        <div key={doctor._id} className={`doctor-card ${selectedDoctors.includes(doctor._id) ? 'selected' : ''}`}>
+                            <div className="card-header">
+                                <input
+                                    type="checkbox"
+                                    checked={selectedDoctors.includes(doctor._id)}
+                                    onChange={() => handleSelectDoctor(doctor._id)}
+                                    className="card-checkbox"
+                                />
+                                <div className="doctor-photo">
+                                    {doctor.image || doctor.profileImage ? (
+                                        <img
+                                            src={doctor.image || doctor.profileImage}
+                                            alt={doctor.name}
+                                            onError={(e) => {
+                                                e.target.style.display = 'none';
+                                                e.target.nextSibling.style.display = 'flex';
+                                            }}
+                                        />
+                                    ) : null}
+                                    <div className="photo-placeholder" style={{ display: doctor.image || doctor.profileImage ? 'none' : 'flex' }}>
+                                        {doctor.name?.charAt(0) || '?'}
+                                    </div>
+                                </div>
+                                <div className="card-info">
+                                    <h3 className="doctor-name">{doctor.name}</h3>
+                                    <p className="doctor-id">ID: {doctor._id?.slice(-6)}</p>
+                                </div>
+                            </div>
+
+                            <div className="card-body">
+                                <div className="card-details">
+                                    <div className="detail-item">
+                                        <span className="label">Department:</span>
+                                        <span className="department-badge">{doctor.department}</span>
+                                    </div>
+                                    <div className="detail-item">
+                                        <span className="label">Specialty:</span>
+                                        <span className="value">{doctor.specialty}</span>
+                                    </div>
+                                    <div className="detail-item">
+                                        <span className="label">Experience:</span>
+                                        <span className="value">{doctor.yearsOfExperience} years</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="card-actions">
+                                <button
+                                    onClick={() => navigate(`/doctors/${doctor._id}`)}
+                                    className="action-btn view-btn"
+                                >
+                                    <span className="btn-icon">👁️</span>
+                                    View
+                                </button>
+                                <button
+                                    onClick={() => navigate(`/admin/doctors/edit/${doctor._id}`)}
+                                    className="action-btn edit-btn"
+                                >
+                                    <span className="btn-icon">✏️</span>
+                                    Edit
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setDoctorToDelete(doctor);
+                                        setShowDeleteModal(true);
+                                    }}
+                                    className="action-btn delete-btn"
+                                >
+                                    <span className="btn-icon">🗑️</span>
+                                    Delete
+                                </button>
+                            </div>
                         </div>
-                    )}
+                    ))}
                 </div>
             </div>
+
+            {sortedDoctors.length === 0 && !loading && (
+                <div className="no-doctors">
+                    <p>No doctors found{searchTerm && ` for "${searchTerm}"`}</p>
+                </div>
+            )}
+
+            {totalPages > 1 && (
+                <div className="pagination">
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="pagination-btn"
+                    >
+                        Previous
+                    </button>
+
+                    <div className="pagination-info">
+                        Page {currentPage} of {totalPages}
+                    </div>
+
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        className="pagination-btn"
+                    >
+                        Next
+                    </button>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && (
+                <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                        <h3>Confirm Delete</h3>
+                        <p>Are you sure you want to delete Dr. {doctorToDelete?.name}?</p>
+                        <div className="modal-actions">
+                            <button
+                                onClick={() => setShowDeleteModal(false)}
+                                className="cancel-btn"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => handleDelete(doctorToDelete._id)}
+                                className="confirm-delete-btn"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -1,5 +1,6 @@
 import React from 'react';
 import '../CSS/Footer.css';
+import {Link} from "react-router-dom";
 
 const Footer = () => {
     return (
@@ -11,10 +12,10 @@ const Footer = () => {
 
                     {/* Social Media Links */}
                     <div className="social-media-links">
-                        <a href="https://www.facebook.com/dirghayucare" target="_blank" rel="noopener noreferrer" className="social-link">
+                        <a href="https://www.facebook.com/dirghayucare.np" target="_blank" rel="noopener noreferrer" className="social-link">
                             <img src="/images/facebook-icon.svg" alt="Facebook" className="social-icon" />
                         </a>
-                        <a href="https://www.instagram.com/dirghayucare" target="_blank" rel="noopener noreferrer" className="social-link">
+                        <a href="https://www.instagram.com/dirghayucare.np" target="_blank" rel="noopener noreferrer" className="social-link">
                             <img src="/images/instagram-icon.svg" alt="Instagram" className="social-icon" />
                         </a>
                         <a href="https://www.tiktok.com/@dirghayucare" target="_blank" rel="noopener noreferrer" className="social-link">
@@ -28,7 +29,11 @@ const Footer = () => {
                         <h4 className="footer-heading">Quick Links</h4>
                         <ul className="footer-list">
                             <li><a href="#" className="footer-link">Home</a></li>
-                            <li><a href="#" className="footer-link">Doctors</a></li>
+                            <li>
+                                <Link to="/doctors" className="footer-link">
+                                    Doctors
+                                </Link>
+                            </li>
                             <li><a href="#" className="footer-link">Services</a></li>
                             <li><a href="#" className="footer-link">Our Team</a></li>
                             <li><a href="#" className="footer-link">Contact</a></li>
@@ -36,7 +41,7 @@ const Footer = () => {
                     </div>
 
                     <div className="footer-column">
-                        <h4 className="footer-heading">Services</h4>
+                    <h4 className="footer-heading">Services</h4>
                         <ul className="footer-list">
                             <li><a href="#" className="footer-link">Primary Care</a></li>
                             <li><a href="#" className="footer-link">Preventive Health</a></li>

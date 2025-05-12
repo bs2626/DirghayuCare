@@ -1,0 +1,263 @@
+/* src/CSS/AdminLayout.css */
+
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+    background-color: #f5f5f5;
+    margin: 5rem auto;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Sidebar Styles */
+.admin-sidebar {
+    width: 280px;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+    transition: width 0.3s ease-in-out;
+    position: relative;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 100;
+}
+
+.admin-sidebar.collapsed {
+    width: 80px;
+}
+
+.admin-sidebar-header {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    transition: opacity 0.3s ease;
+}
+
+.collapsed .admin-title {
+    opacity: 0;
+}
+
+/* Sidebar Toggle Button */
+.sidebar-toggle-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.sidebar-toggle-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.hamburger {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background-color: white;
+    margin: 3px 0;
+    transition: 0.3s;
+}
+
+/* Navigation Styles */
+.admin-nav {
+    padding: 20px 0;
+}
+
+.admin-nav-link,
+.admin-logout-btn {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 12px 20px;
+    color: white;
+    text-decoration: none;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-nav-link:hover,
+.admin-logout-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding-left: 24px;
+}
+
+.admin-nav-link.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-right: 3px solid #fff;
+}
+
+.nav-icon {
+    font-size: 20px;
+    margin-right: 15px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.nav-text {
+    white-space: nowrap;
+    overflow: hidden;
+    transition: opacity 0.3s ease;
+}
+
+.collapsed .nav-text {
+    opacity: 0;
+    width: 0;
+}
+
+.collapsed .nav-icon {
+    margin-right: 0;
+}
+
+/* Logout Button Specific */
+.admin-logout-btn {
+    margin-top: 20px;
+    color: #ff6b6b;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.admin-logout-btn:hover {
+    background-color: rgba(255, 107, 107, 0.1);
+}
+
+/* Main Content Styles */
+.admin-main {
+    flex: 1;
+    margin-left: 280px;
+    transition: margin-left 0.3s ease-in-out;
+    background-color: #f8f9fA;
+    min-height: 100vh;
+}
+
+.admin-main.expanded {
+    margin-left: 80px;
+}
+
+.admin-header {
+    background: white;
+    padding: 20px 30px;
+    border-bottom: 1px solid #e5e5e5;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.mobile-menu-btn {
+    display: none;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.admin-header h1 {
+    margin: 0;
+    color: #333;
+    font-size: 28px;
+    font-weight: 600;
+}
+
+.admin-content {
+    padding: 30px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .admin-sidebar {
+        width: 280px;
+        position: fixed;
+        left: -280px;
+        z-index: 1000;
+        transition: left 0.3s ease-in-out;
+    }
+
+    .admin-sidebar.mobile-open {
+        left: 0;
+    }
+
+    .admin-sidebar.mobile-closed {
+        left: -280px;
+    }
+
+    .admin-main {
+        margin-left: 0;
+    }
+
+    .admin-main.expanded {
+        margin-left: 0;
+    }
+
+    /* Mobile header with menu button */
+    .mobile-menu-btn {
+        display: block;
+    }
+
+    .mobile-menu-btn:hover {
+        background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    .mobile-menu-btn .hamburger {
+        display: block;
+        width: 20px;
+        height: 2px;
+        background-color: #333;
+        margin: 3px 0;
+        transition: 0.3s;
+    }
+
+    /* Sidebar overlay for mobile */
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+    }
+
+    /* Hide sidebar toggle button on mobile */
+    .admin-sidebar .sidebar-toggle-btn {
+        display: none;
+    }
+}
+
+/* Animation for smooth transitions */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.admin-nav-link {
+    animation: slideIn 0.3s ease-in-out;
+}
