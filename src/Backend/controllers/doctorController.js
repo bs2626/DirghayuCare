@@ -282,26 +282,39 @@ exports.updateDoctor = async (req, res) => {
 // @desc    Delete doctor
 // @route   DELETE /api/doctors/:id
 // @access  Private (Admin)
+// Update your deleteDoctor function in doctorController.js
+
 exports.deleteDoctor = async (req, res) => {
     try {
+        console.log('Attempting to delete doctor with ID:', req.params.id);
+
+        // Find the doctor by ID
         const doctor = await Doctor.findById(req.params.id);
 
         if (!doctor) {
+            console.log('Doctor not found');
             return res.status(404).json({
                 success: false,
-                error: 'Doctor not found'
+                message: 'Doctor not found'
             });
         }
 
-        await doctor.remove();
+        console.log('Found doctor:', doctor.name);
+
+        // Use deleteOne() instead of remove()
+        await doctor.deleteOne();
+
+        // Alternative approach - you can also use:
+        // await Doctor.findByIdAndDelete(req.params.id);
+
+        console.log('Doctor deleted successfully');
 
         res.status(200).json({
             success: true,
-            data: {},
-            message: 'Doctor profile removed'
+            message: 'Doctor deleted successfully'
         });
     } catch (error) {
-        console.error(error);
+        console.error('Error deleting doctor:', error);
         res.status(500).json({
             success: false,
             error: 'Server Error'

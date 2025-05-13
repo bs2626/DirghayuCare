@@ -21,6 +21,11 @@ const AdminDoctors = () => {
 
     const API_URL = process.env.REACT_APP_API_URL || '/api';
 
+    // Debug API URL
+    useEffect(() => {
+        console.log('API_URL configured as:', API_URL);
+    }, []);
+
     useEffect(() => {
         fetchDoctors();
     }, []);
@@ -28,12 +33,28 @@ const AdminDoctors = () => {
     const fetchDoctors = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${API_URL}/doctors`);
+
+            // Get admin token from localStorage
+            const adminAuth = localStorage.getItem('adminAuth');
+            const adminToken = localStorage.getItem('adminToken');
+
+            console.log('Admin auth status:', adminAuth);
+            console.log('Admin token exists:', !!adminToken);
+
+            // Create axios config with headers if needed
+            const config = {};
+            if (adminToken) {
+                config.headers = {
+                    'Authorization': `Bearer ${adminToken}`
+                };
+            }
+
+            const response = await axios.get(`${API_URL}/doctors`, config);
             setDoctors(response.data.data || []);
             setError(null);
         } catch (err) {
             setError('Failed to fetch doctors');
-            console.error(err);
+            console.error('Fetch doctors error:', err);
         } finally {
             setLoading(false);
         }
@@ -89,13 +110,109 @@ const AdminDoctors = () => {
 
     const handleDelete = async (doctorId) => {
         try {
-            await axios.delete(`${API_URL}/doctors/${doctorId}`);
-            setDoctors(doctors.filter(doctor => doctor._id !== doctorId));
-            setShowDeleteModal(false);
-            setDoctorToDelete(null);
+            // Get admin token from localStorage
+            const adminAuth = localStorage.getItem('adminAuth');
+            const adminToken = localStorage.getItem('adminToken');
+
+            console.log('Attempting to delete doctor:', doctorId);
+            console.log('API URL:', API_URL);
+            console.log('Admin auth status:', adminAuth);
+            console.log('Admin token exists:', !!adminToken);
+
+            // Create axios config with authentication headers
+            const config = {};
+
+            // For your setup, let's try multiple authentication approaches
+            if (adminToken) {
+                config.headers = {
+                    'Authorization': `Bearer ${adminToken}`
+                };
+            } else if (adminAuth === 'yes') {
+                // Try both approaches in case backend expects different headers
+                config.headers = {
+                    'X-Admin-Auth': 'yes',
+                    'Admin-Authenticated': 'true'
+                };
+            }
+
+            // Also add any cookies if your backend uses session-based auth
+            config.withCredentials = true;
+
+            console.log('Request config:', config);
+
+            // Full URL for debugging
+            const fullUrl = `${API_URL}/doctors/${doctorId}`;
+            console.log('Full delete URL:', fullUrl);
+
+            const response = await axios.delete(fullUrl, config);
+
+            console.log('Delete response:', response);
+
+            // Check if the response is successful
+            if (response.status === 200 || response.status === 204) {
+                // Update the state to remove the deleted doctor
+                setDoctors(doctors.filter(doctor => doctor._id !== doctorId));
+                setShowDeleteModal(false);
+                setDoctorToDelete(null);
+
+                // Show success message
+                alert('Doctor deleted successfully');
+            } else {
+                throw new Error(`Unexpected response status: ${response.status}`);
+            }
         } catch (err) {
-            alert('Failed to delete doctor');
-            console.error(err);
+            console.error('Error deleting doctor:', err);
+
+            // More specific error messages
+            let errorMessage = 'Failed to delete doctor';
+
+            if (err.response) {
+                // The request was made and the server responded with a status code
+                console.error('Error response status:', err.response.status);
+                console.error('Error response data:', err.response.data);
+                console.error('Error response headers:', err.response.headers);
+
+                // Check if there's a specific error message from the server
+                if (err.response.data && err.response.data.error) {
+                    console.error('Server error details:', err.response.data.error);
+                }
+
+                if (err.response.status === 401) {
+                    errorMessage = 'Authentication failed. Please log in again.';
+                    // Redirect to login page
+                    localStorage.removeItem('adminAuth');
+                    localStorage.removeItem('adminToken');
+                    navigate('/admin/login');
+                } else if (err.response.status === 403) {
+                    errorMessage = 'You do not have permission to delete doctors.';
+                } else if (err.response.status === 404) {
+                    errorMessage = 'Doctor not found. It may have already been deleted.';
+                } else if (err.response.status === 500) {
+                    // For 500 errors, provide more information
+                    const serverError = err.response.data?.error || err.response.data?.message || 'Internal server error';
+                    errorMessage = `Server error: ${serverError}. 
+                    
+                    This could be due to:
+                    1. Backend authentication middleware issue
+                    2. Database connection problem
+                    3. Invalid doctor ID format
+                    4. Missing required headers
+                    
+                    Please check the server logs for more details.`;
+                } else {
+                    errorMessage = `Error: ${err.response.status} - ${err.response.data?.message || 'Unknown error'}`;
+                }
+            } else if (err.request) {
+                // The request was made but no response was received
+                console.error('No response received:', err.request);
+                errorMessage = 'No response from server. Please check your connection.';
+            } else {
+                // Something happened in setting up the request
+                console.error('Request setup error:', err.message);
+                errorMessage = `Request error: ${err.message}`;
+            }
+
+            alert(errorMessage);
         }
     };
 
