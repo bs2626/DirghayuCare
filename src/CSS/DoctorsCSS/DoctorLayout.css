@@ -1,0 +1,32 @@
+/* Doctor Layout Styles */
+.doctor-layout {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f8f9fa;
+}
+
+.main-content {
+    flex: 1;
+    padding: 2rem 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .main-content {
+        padding: 1rem;
+    }
+}
+
+/* Ensure proper spacing */
+.main-content > * {
+    margin-bottom: 1rem;
+}
+
+.main-content > *:last-child {
+    margin-bottom: 0;
+}

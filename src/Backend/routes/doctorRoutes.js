@@ -14,7 +14,7 @@ const upload = require('../middleware/cloudinaryUpload');
 router.get('/stats', getDoctorStats);
 
 // Routes for all doctors - /api/doctors
-router.route('/')
+router.route('/doctors')
     .post(upload.single('profileImage'), registerDoctor)
     .get(getDoctors);
 

@@ -4,7 +4,7 @@ import DoctorProfileCard from './DoctorProfileCard';
 import '../CSS/DoctorList.css';
 
 // Get the API URL from environment variables
-const API_URL = process.env.REACT_APP_API_URL || '/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const DoctorList = ({ onDoctorSelect }) => {
     const [doctors, setDoctors] = useState([]);

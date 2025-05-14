@@ -1,9 +1,6 @@
 // Install required packages
 // npm install cloudinary multer multer-storage-cloudinary
 
-
-
-// 2. Create a middleware file in your backend: middleware/cloudinaryUpload.js
 const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('cloudinary').v2;
@@ -47,60 +44,3 @@ const upload = multer({
 });
 
 module.exports = upload;
-
-// 3. Update your doctorRoutes.js to use this middleware
-/*
-const express = require('express');
-const router = express.Router();
-const {
-  registerDoctor,
-  getDoctors,
-  getDoctor,
-  updateDoctor,
-  deleteDoctor,
-  getDoctorStats
-} = require('../controllers/doctorController');
-const upload = require('../middleware/cloudinaryUpload');
-
-// Get doctor statistics
-router.get('/stats', getDoctorStats);
-
-// Routes for all doctors
-router.route('/')
-  .post(upload.single('profileImage'), registerDoctor)
-  .get(getDoctors);
-
-// Routes for specific doctor
-router.route('/:id')
-  .get(getDoctor)
-  .put(upload.single('profileImage'), updateDoctor)
-  .delete(deleteDoctor);
-
-module.exports = router;
-*/
-
-// 4. Update your doctorController.js to handle the Cloudinary image URL
-/*
-// In registerDoctor function:
-// Get the image URL if file was uploaded
-let imageUrl = 'default-doctor.jpg';
-if (req.file) {
-  imageUrl = req.file.path; // Cloudinary returns the URL in the path property
-}
-
-// Then use this imageUrl when creating the doctor:
-const doctor = await Doctor.create({
-  user: userId,
-  name,
-  nmcNumber,
-  department,
-  mbbsCollege,
-  mdCollege: mdCollege || '',
-  yearsOfExperience,
-  specialty,
-  description,
-  image: imageUrl
-});
-*/
-
-// Similarly, update the updateDoctor function to handle image updates

@@ -4,6 +4,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import '../CSS/EditDoctor.css';
 
+const API_URL = process.env.REACT_APP_API_URL || '/api';
+
 const EditDoctor = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -129,7 +131,7 @@ const EditDoctor = () => {
             }
 
             // Send the update request
-            await axios.put(`http://localhost:5000/api/doctors/${id}`, formData, {
+            await axios.put(`${API_URL}/doctors/${id}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
